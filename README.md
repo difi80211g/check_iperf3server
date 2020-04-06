@@ -8,6 +8,8 @@ The librenms instance will act as the client and the monitored endpoint that you
 Librenms Requirements
 pip install iperf3
 
+Install check_iperf3server in the nagios plugin directory.  Typically (/usr/lib/nagios/plugins).  make sure to set permissions: chmod +x check_iperf3server
+
 Usage:
 Add the iperf3server as a service under a monitoring endpoint.
 Enter the IP Address if different than the host
