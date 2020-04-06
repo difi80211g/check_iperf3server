@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
 
   # STATUS: 'label'=value[UOM];[warn];[crit];[min];[max]
-  print("{}: {} Mbps|'Throughput'={}MB;{};{};0;1024".format(
+  print("{}: {} Mbps|'Throughput'={}MB;{};{};;;".format(
       status[1],
       str(iperfresult),
       iperfresultround,
