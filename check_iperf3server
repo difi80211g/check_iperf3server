@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import iperf3
+
+# DEFAULT VALUES
+default_length = 30;
+default_port = 5201;
+
+
+def main(args):
+
+  #Set default values if none specified
+  length = default_length if not args.l else args.l
+  port = default_port if not args.p else args.p
+
+  #Perform iperf Test
+  iperfclient = iperf3.Client()
+  iperfclient.duration = length
+  iperfclient.server_hostname = args.H
+  iperfclient.port = port
+  result = iperfclient.run()
+  iperfresult = result.sent_Mbps
+  iperfresultround = float(round(iperfresult,2))
+  if args.debug > 1: print ('Throughput: {}'.format(iperfresult))
+
+  status = [0, 'OK']
+  if iperfresult < args.w: status = [1, 'WARNING']
+  if iperfresult < args.c: status = [2, 'CRITICAL']
+  if args.debug >= 1: print ('STATUS: {}'.format(status))
+
+
+  # Printout input data
+  # This is the expected format:
+
+if __name__ == '__main__':
+
+    # Setup CLI arugments
+    parser = argparse.ArgumentParser(prog='check_iperf3server')
+    parser.add_argument('-H', help='hostip', type=str)
+    parser.add_argument('-p', help='iperf server port', type=int)
+    parser.add_argument('-w', help='warning threshold', type=int)
+    parser.add_argument('-c', help='critical threshold', type=int)
+    parser.add_argument('-l', help='length', type=int)
+    parser.add_argument('-debug', help='debug data [1|2]', type=int)
+    args = parser.parse_args()
+
+    sys.exit(main(args))
+
+
+  # STATUS: 'label'=value[UOM];[warn];[crit];[min];[max]
+  print("{}: {} Mbps|'Throughput'={}MB;{};{};0;1024".format(
+      status[1],
+      str(iperfresult),
+      iperfresultround,
+      args.w,
+      args.c,
+  ))
+
+  return status[0]
