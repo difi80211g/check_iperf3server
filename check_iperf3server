@@ -32,7 +32,16 @@ def main(args):
 
 
   # Printout input data
-  # This is the expected format:
+  # STATUS: 'label'=value[UOM];[warn];[crit];[min];[max]
+  print("{}: {} Mbps|'Throughput'={}MB;{};{};;;".format(
+      status[1],
+      str(iperfresult),
+      iperfresultround,
+      args.w,
+      args.c,
+  ))
+
+  return status[0]
 
 if __name__ == '__main__':
 
@@ -47,15 +56,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     sys.exit(main(args))
-
-
-  # STATUS: 'label'=value[UOM];[warn];[crit];[min];[max]
-  print("{}: {} Mbps|'Throughput'={}MB;{};{};;;".format(
-      status[1],
-      str(iperfresult),
-      iperfresultround,
-      args.w,
-      args.c,
-  ))
-
-  return status[0]
