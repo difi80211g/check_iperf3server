@@ -3,45 +3,87 @@
 import argparse
 import sys
 import iperf3
+from pathlib import Path
+import os
+import time
+import re
+
 
 # DEFAULT VALUES
 default_length = 30;
 default_port = 5201;
-
+default_time = 1;
+check = "/tmp/iperf.check";
 
 def main(args):
 
   #Set default values if none specified
   length = default_length if not args.l else args.l
   port = default_port if not args.p else args.p
+  runtime = default_time if not args.t else args.t
+  debug = 0 if not args.debug else args.debug
+  checkfile = 1;
 
-  #Perform iperf Test
-  iperfclient = iperf3.Client()
-  iperfclient.duration = length
-  iperfclient.server_hostname = args.H
-  iperfclient.port = port
-  result = iperfclient.run()
-  iperfresult = result.sent_Mbps
-  iperfresultround = float(round(iperfresult,2))
-  if args.debug > 1: print ('Throughput: {}'.format(iperfresult))
+  #Test to see if check file exists
+  try:
+    f = open(check)
+  except IOError:
+    if debug >=1: print ("Cannot open the check file")
+    checkfile = 0;
+  #Get the time
+  t = time.time()
 
-  status = [0, 'OK']
-  if iperfresult < args.w: status = [1, 'WARNING']
-  if iperfresult < args.c: status = [2, 'CRITICAL']
-  if args.debug >= 1: print ('STATUS: {}'.format(status))
+  #Check Modification Date if file exists, otherwise we continue assuming this is first run
+  if checkfile == 1:
+    file_mod_time = os.stat(check).st_mtime
+    modtime = (t - file_mod_time)/60
+  else:
+    #Set the modtime to 1 year so it will trigger
+    modtime = 525600;
+
+  #Adjust time entered to seconds to match file epoch
+  if modtime < runtime:
+    if debug >= 1:
+      print ("Its not time to run yet mod: ")
+      print (modtime)
+      print (" runtime: ")
+      print (runtime)
+    exit(0)
+  else:
+    if debug >= 1:
+      print ("Lets test it mod: ")
+      print (modtime)
+      print (" runtime: ")
+      print (runtime)
+    #Perform iperf Test
+    iperfclient = iperf3.Client()
+    iperfclient.duration = length
+    iperfclient.server_hostname = args.H
+    iperfclient.port = port
+    result = iperfclient.run()
+    iperfresult = result.sent_Mbps
+    iperfresultround = float(round(iperfresult,2))
+    if debug >= 1: print ('Throughput: {}'.format(iperfresult))
+
+    status = [0, 'OK']
+    if iperfresult < args.w: status = [1, 'WARNING']
+    if iperfresult < args.c: status = [2, 'CRITICAL']
+    if debug >= 1: print ('STATUS: {}'.format(status))
 
 
-  # Printout input data
-  # STATUS: 'label'=value[UOM];[warn];[crit];[min];[max]
-  print("{}: {} Mbps|'Throughput'={}MB;{};{};;;".format(
-      status[1],
-      str(iperfresult),
-      iperfresultround,
-      args.w,
-      args.c,
-  ))
+    # Printout input data
+    # STATUS: 'label'=value[UOM];[warn];[crit];[min];[max]
+    print("{}: {} Mbps|'Throughput'={}MB;{};{};;;".format(
+        status[1],
+        str(iperfresult),
+        iperfresultround,
+        args.w,
+        args.c,
+    ))
 
-  return status[0]
+    Path('/tmp/iperf.check').touch()
+
+    return status[0]
 
 if __name__ == '__main__':
 
@@ -53,6 +95,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', help='critical threshold', type=int)
     parser.add_argument('-l', help='length', type=int)
     parser.add_argument('-debug', help='debug data [1|2]', type=int)
+    parser.add_argument('-t', help='time since last run', type=int)
     args = parser.parse_args()
 
     sys.exit(main(args))
+
