@@ -7,6 +7,7 @@ The librenms instance will act as the client and the monitored endpoint that you
 
 Librenms Requirements
 pip install iperf3
+pip install pathlib
 
 Install check_iperf3server in the nagios plugin directory.  Typically (/usr/lib/nagios/plugins).  make sure to set permissions: chmod +x check_iperf3server
 
@@ -19,6 +20,10 @@ Arguments:
 -c Critical level (in MB)
 -l Length of iPerf Test (in seconds)
 -debug enter 2 for debug output
+-t Minimum time between runs.  
 
 example:
--w 800 -c 500 -l 10
+-w 800 -c 500 -l 10 -t 10
+
+# Note on Time Setting:
+When setting the time interval, keep in mind the poller runs every 5 minutes by default.  At the time of run, the last run will be verified with a file in /tmp/.  If the time you set is less than the time since last run it will trigger, else it will skip the test.  Setting a time of 8 minutes doesn't mean it will run every 8 minutes, thats the minimum, it will run every 10 minutes if poller is still set at default of 5 minutes.
