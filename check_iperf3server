@@ -13,7 +13,7 @@ import re
 default_length = 30;
 default_port = 5201;
 default_time = 1;
-check = "/tmp/iperf.check";
+check_base = "/tmp/iperf-";
 
 def main(args):
 
@@ -22,6 +22,7 @@ def main(args):
   port = default_port if not args.p else args.p
   runtime = default_time if not args.t else args.t
   debug = 0 if not args.debug else args.debug
+  check = check_base + args.H
   checkfile = 1;
 
   #Test to see if check file exists
@@ -81,7 +82,7 @@ def main(args):
         args.c,
     ))
 
-    Path('/tmp/iperf.check').touch()
+    Path(check).touch()
 
     return status[0]
 
